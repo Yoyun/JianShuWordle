@@ -102,8 +102,9 @@ DOWNLOADER_MIDDLEWARES = {
 }
 
 ITEM_PIPELINES = {
-   'JianShuWordle.pipelines.PagePipeline': 100,
-   'JianShuWordle.pipelines.CSVPipeline': 100,
+   # 'JianShuWordle.pipelines.PagePipeline': 100,
+   # 'JianShuWordle.pipelines.CSVPipeline': 100,
+   'JianShuWordle.pipelines.WordCloudPipeline': 100,
 }
 
 # 随机 UserAgent

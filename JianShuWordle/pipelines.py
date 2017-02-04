@@ -9,6 +9,10 @@ import pymongo
 
 from scrapy import signals
 from scrapy.contrib.exporter import CsvItemExporter
+from pytagcloud import create_tag_image, make_tags
+from pytagcloud.lang.counter import get_tag_counts
+import jieba
+import collections
 
 
 class JianshuwordlePipeline(object):
@@ -73,11 +77,43 @@ class CSVPipeline(object):
         file = self.files.pop(spider)
         file.close()
 
-
     def process_item(self, item, spider):
         self.exporter.export_item(item)
         return item
 
 
 class WordCloudPipeline(object):
-    pass
+
+    def __init__(self):
+        self.tag = []
+
+    @classmethod
+    def from_crawler(cls, crawler):
+        pipline = cls()
+        crawler.signals.connect(pipline.spider_opened, signals.spider_opened)
+        crawler.signals.connect(pipline.spider_closed, signals.spider_closed)
+        return pipline
+
+    def spider_opened(self, spider):
+        print 'start make word cloud image'
+
+    def spider_closed(self, spider):
+        text = ' '.join(self.tag)
+        tags = make_tags(self.maketags(text, maxsize=100))
+        create_tag_image(tags, 'page_word_cloud.png', size=(860, 480), fontname='SimHei')
+        print 'make word cloud image compled'
+
+    def process_item(self, item, spider):
+        if item['title']:
+            self.tag.append(item['title'])
+        return item
+
+    def maketags(self, text, maxsize=100):
+        cis = list(jieba.cut(text))
+        tag = []
+        for c in cis:
+            if len(c) > 1:
+                tag.append(c)
+
+        tags = collections.Counter(tag).most_common(maxsize)
+        return tags
